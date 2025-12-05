@@ -1,0 +1,5 @@
+{
+  "name": "MedPulse GCC",
+  "description": "AI-powered GCC Medical News Aggregator and LinkedIn Post Generator",
+  "requestFramePermissions": []
+}
