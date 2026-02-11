@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { Article } from "../types";
 
 const getClient = () => {
@@ -9,57 +9,44 @@ const getClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-export const fetchGCCMedicalNews = async (): Promise<Article[]> => {
+export const fetchGCCIndustryNews = async (): Promise<Article[]> => {
   const ai = getClient();
   
-  // We use the search tool to find actual recent info
   const prompt = `
-    Find the top 5 most significant medical and healthcare news stories from the GCC region (Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, Oman) from the last 7 days.
-    Focus on government initiatives, hospital openings, medical tech advancements, or public health updates.
+    Find the top 6 most significant news stories from the GCC (Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, Oman) 
+    from the last 7 days focusing on these three specific sectors:
+    1. IT (AI, cybersecurity, digital infrastructure).
+    2. Oil & Gas (Energy transition, hydrogen, market updates).
+    3. Saudi Vision 2030 (Major giga-projects like NEOM, social reforms, or economic diversification updates).
     
     Return the result strictly as a JSON array of objects. 
-    Each object must have:
+    Each object MUST have:
     - title: string
     - summary: string (2-3 sentences)
-    - source: string (name of publisher)
-    - date: string (approximate date)
-    - region: string (Specific country or "GCC")
+    - source: string
+    - date: string
+    - region: string
+    - sector: string (Must be exactly "IT", "Oil & Gas", or "Vision 2030")
     
-    Ensure the JSON is valid and not wrapped in any explanation or markdown formatting.
+    Ensure the JSON is valid and not wrapped in markdown.
   `;
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-      },
+      config: { tools: [{ googleSearch: {} }] },
     });
 
-    let text = response.text;
-    if (!text) return [];
-
-    // FIX: Clean up markdown code fences (```json and ```) 
-    // which often wrap JSON responses when not using structured output mode.
-    if (text.startsWith('```json')) {
-      text = text.substring('```json'.length);
-    }
-    if (text.endsWith('```')) {
-      // Trim the trailing '```' and any surrounding whitespace
-      text = text.substring(0, text.length - '```'.length).trim();
-    }
-
+    let text = response.text || "";
+    text = text.replace(/```json|```/g, "").trim();
     const rawArticles = JSON.parse(text);
-    
-    // Add IDs and map to the Article type.
     
     return rawArticles.map((art: any, index: number) => ({
       ...art,
       id: `art-${Date.now()}-${index}`,
       url: ''
     }));
-
   } catch (error) {
     console.error("Error fetching news:", error);
     throw error;
@@ -68,25 +55,22 @@ export const fetchGCCMedicalNews = async (): Promise<Article[]> => {
 
 export const generateLinkedInPost = async (article: Article): Promise<string> => {
   const ai = getClient();
-
   const prompt = `
-    You are an expert social media strategist for the GCC healthcare sector.
-    Write a high-engagement LinkedIn post based on the following article:
+    You are a premier business consultant for the GCC region.
+    Write a high-engagement LinkedIn post based on this article:
     
     Title: ${article.title}
-    Summary: ${article.summary}
+    Sector: ${article.sector}
     Region: ${article.region}
-    Source: ${article.source}
     
     STYLE GUIDELINES:
-    1. Start with a "Hook" (a provocative question or strong statement).
-    2. Add "The Insight" (why this matters for healthcare in the Middle East).
-    3. Include bullet points for key details (use emojis like 🏥, 💉, 📈).
-    4. End with a "Discussion Starter" question to drive comments.
-    5. Tone: Professional, authoritative, yet accessible.
-    6. Include 3-5 hashtags at the very bottom (e.g., #GCCHealth, #Vision2030, #HealthTech).
+    1. Start with a powerful hook about GCC growth.
+    2. Explain the strategic importance of this update.
+    3. Use sector-relevant emojis (💻 for IT, 🛢️ for Energy, 🇸🇦 for Vision 2030).
+    4. End with a question to drive engagement.
+    5. Include 4 relevant hashtags.
     
-    Format the output with clean line breaks between sections. Do not use markdown bolding (asterisks), just plain text that looks good on LinkedIn.
+    Plain text only, no markdown bolding.
   `;
 
   try {
@@ -94,10 +78,8 @@ export const generateLinkedInPost = async (article: Article): Promise<string> =>
       model: "gemini-2.5-flash",
       contents: prompt,
     });
-
     return response.text || "Failed to generate post.";
   } catch (error) {
-    console.error("Error generating post:", error);
-    return "Error generating post content. Please try again.";
+    return "Error generating post content.";
   }
 };

@@ -7,7 +7,12 @@ export default defineConfig(({ mode }) => {
     return {
       server: {
         port: 3000,
-        host: '0.0.0.0',
+        host: true, 
+        // FIX: Hardcode the exact hostname from the error log as the wildcard failed.
+        allowedHosts: ['8c0c064f525b.ngrok-free.app'], 
+        hmr: {
+             clientPort: 443, 
+        },
       },
       plugins: [react()],
       define: {

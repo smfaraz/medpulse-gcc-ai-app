@@ -1,6 +1,6 @@
 import React from 'react';
 import { GeneratedPost } from '../types';
-import { Edit3, Clock, CheckCircle2, MoreHorizontal, Send, Linkedin, ExternalLink } from 'lucide-react';
+import { Edit3, Clock, CheckCircle2, MoreHorizontal, Send, Linkedin, ExternalLink, BarChart3 } from 'lucide-react';
 
 interface PostManagerProps {
   posts: GeneratedPost[];
@@ -11,20 +11,19 @@ interface PostManagerProps {
 
 const PostManager: React.FC<PostManagerProps> = ({ posts, view, onEdit, onPublish }) => {
   const filteredPosts = posts.filter(p => p.status === (view === 'drafts' ? 'draft' : 'published'));
-  // Sort by newest first
   filteredPosts.sort((a, b) => b.createdAt - a.createdAt);
 
   if (filteredPosts.length === 0) {
      return (
-        <div className="text-center py-20">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                {view === 'drafts' ? <Edit3 size={32} /> : <CheckCircle2 size={32} />}
+        <div className="text-center py-20 bg-white rounded-xl border border-slate-200">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                {view === 'drafts' ? <Edit3 size={32} /> : <BarChart3 size={32} />}
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">No {view} found</h2>
+            <h2 className="text-lg font-bold text-slate-900">No {view} found</h2>
             <p className="text-slate-500 mt-1">
                 {view === 'drafts' 
-                    ? "Generate a post from the News Feed to see it here." 
-                    : "Published posts will appear here."}
+                    ? "Generate an industrial update from the News Feed to see it here." 
+                    : "Your published industry insights will appear here."}
             </p>
         </div>
      );
@@ -39,24 +38,24 @@ const PostManager: React.FC<PostManagerProps> = ({ posts, view, onEdit, onPublis
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 capitalize">{view}</h1>
-        <span className="text-sm text-slate-500">{filteredPosts.length} items</span>
+        <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">{filteredPosts.length} Items</span>
       </div>
 
       <div className="grid gap-4">
         {filteredPosts.map((post) => (
-          <div key={post.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-200 transition-colors group">
+          <div key={post.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-colors group">
             <div className="flex justify-between items-start mb-3">
                <div>
-                  <h3 className="font-semibold text-slate-900 mb-1">{post.originalArticleTitle}</h3>
+                  <h3 className="font-bold text-slate-900 mb-1">{post.originalArticleTitle}</h3>
                   <div className="flex items-center gap-3 text-xs text-slate-500">
                     <span className="flex items-center gap-1">
                         <Clock size={12} />
                         {new Date(post.createdAt).toLocaleDateString()}
                     </span>
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                         post.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
                     }`}>
-                        {post.status.toUpperCase()}
+                        {post.status}
                     </span>
                   </div>
                </div>
@@ -76,13 +75,13 @@ const PostManager: React.FC<PostManagerProps> = ({ posts, view, onEdit, onPublis
                    <>
                     <button 
                         onClick={() => onEdit(post)}
-                        className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2"
+                        className="px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2"
                     >
                         <Edit3 size={16} /> Edit
                     </button>
                     <button 
                         onClick={() => onPublish(post.id)}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                        className="px-4 py-2 text-sm font-bold text-white bg-indigo-900 rounded-lg hover:bg-indigo-950 transition-colors shadow-md flex items-center gap-2"
                     >
                         <Send size={16} /> Publish
                     </button>
@@ -91,7 +90,7 @@ const PostManager: React.FC<PostManagerProps> = ({ posts, view, onEdit, onPublis
                {post.status === 'published' && (
                    <button 
                         onClick={() => handleManualShare(post.content)}
-                        className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-2 hover:bg-blue-100 transition-colors"
+                        className="px-4 py-2 text-sm font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center gap-2 hover:bg-indigo-100 transition-colors"
                    >
                         <Linkedin size={16} /> 
                         Share on LinkedIn

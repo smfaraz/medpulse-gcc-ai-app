@@ -5,14 +5,15 @@ export interface Article {
   source: string;
   url?: string;
   date: string;
-  region: string; // e.g., "UAE", "Saudi Arabia", "GCC"
+  region: string; 
+  sector: 'IT' | 'Oil & Gas'| 'Vision 2030'; // New field for categorization
 }
 
 export interface GeneratedPost {
   id: string;
   articleId: string;
   originalArticleTitle: string;
-  content: string; // The LinkedIn post text
+  content: string; 
   status: 'draft' | 'published';
   createdAt: number;
   lastEditedAt: number;
@@ -20,12 +21,6 @@ export interface GeneratedPost {
 
 export type AppView = 'news' | 'drafts' | 'published';
 
-export interface SearchFilters {
-  daysAgo: number;
-  specificRegion?: string;
-}
-
-// LinkedIn API Structure Types
 export interface LinkedInPostPayload {
   author: string;
   lifecycleState: 'PUBLISHED';

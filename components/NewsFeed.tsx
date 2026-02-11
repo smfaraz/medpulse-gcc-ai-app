@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Article } from '../types';
-import { fetchGCCMedicalNews } from '../services/geminiService';
-import { RefreshCw, Sparkles, MapPin, Calendar, Globe } from 'lucide-react';
+import { fetchGCCIndustryNews } from '../services/geminiService';
+import { RefreshCw, Sparkles, MapPin, Calendar, Globe, Cpu, Flame, Target } from 'lucide-react';
 
 interface NewsFeedProps {
   articles: Article[];
@@ -17,12 +17,21 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ articles, setArticles, onGenerateDr
     setLoading(true);
     setError(null);
     try {
-      const news = await fetchGCCMedicalNews();
+      const news = await fetchGCCIndustryNews();
       setArticles(news);
     } catch (err) {
-      setError("Failed to fetch news. Please check your connection or API Key.");
+      setError("Failed to fetch industry news.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getSectorStyles = (sector: string) => {
+    switch(sector) {
+        case 'IT': return 'border-t-indigo-600 bg-indigo-50 text-indigo-700 border-indigo-100';
+        case 'Oil & Gas': return 'border-t-amber-600 bg-amber-50 text-amber-800 border-amber-100';
+        case 'Vision 2030': return 'border-t-emerald-600 bg-emerald-50 text-emerald-800 border-emerald-100';
+        default: return 'border-t-slate-600 bg-slate-50 text-slate-700 border-slate-100';
     }
   };
 
@@ -30,71 +39,56 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ articles, setArticles, onGenerateDr
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Medical News Feed</h1>
-          <p className="text-slate-500">Curated GCC healthcare updates powered by Gemini AI</p>
+          <h1 className="text-2xl font-bold text-slate-900">GCC Industry & Vision Feed</h1>
+          <p className="text-slate-500">IT, Energy, and Vision 2030 updates powered by Gemini AI</p>
         </div>
         <button
           onClick={handleFetchNews}
           disabled={loading}
-          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+          className="bg-indigo-900 hover:bg-indigo-950 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all"
         >
           {loading ? <RefreshCw className="animate-spin" size={18} /> : <RefreshCw size={18} />}
-          {loading ? 'Analyzing Web...' : 'Fetch Latest News'}
+          {loading ? 'Analyzing...' : 'Fetch Latest Updates'}
         </button>
       </div>
 
-      {error && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-100 flex items-center gap-2">
-           <span>⚠️ {error}</span>
-        </div>
-      )}
-
-      {articles.length === 0 && !loading && !error && (
-        <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
-          <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Globe size={32} />
-          </div>
-          <h3 className="text-lg font-medium text-slate-900">No news articles yet</h3>
-          <p className="text-slate-500 max-w-sm mx-auto mt-2">
-            Click the "Fetch Latest News" button to search for real-time medical updates from the GCC region.
-          </p>
-        </div>
-      )}
-
       <div className="grid gap-6 md:grid-cols-2">
-        {articles.map((article) => (
-          <div key={article.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-            <div className="flex items-start justify-between mb-3">
-               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-100">
-                 <MapPin size={12} /> {article.region}
-               </span>
-               <span className="text-xs text-slate-400 flex items-center gap-1">
-                 <Calendar size={12} /> {article.date}
-               </span>
+        {articles.map((article) => {
+          const styles = getSectorStyles(article.sector);
+          const borderClass = styles.split(' ')[0];
+          const badgeClass = styles.split(' ').slice(1).join(' ');
+
+          return (
+            <div key={article.id} className={`bg-white rounded-xl border-t-4 p-6 shadow-sm hover:shadow-md transition-all flex flex-col ${borderClass}`}>
+              <div className="flex items-start justify-between mb-3">
+                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${badgeClass}`}>
+                   {article.sector === 'IT' && <Cpu size={12} />}
+                   {article.sector === 'Oil & Gas' && <Flame size={12} />}
+                   {article.sector === 'Vision 2030' && <Target size={12} />}
+                   {article.sector}
+                 </span>
+                 <span className="text-xs text-slate-400 flex items-center gap-1">
+                   <Calendar size={12} /> {article.date}
+                 </span>
+              </div>
+              
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{article.title}</h3>
+              <p className="text-slate-600 text-sm mb-4 flex-1">{article.summary}</p>
+              
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
+                    <MapPin size={12}/> {article.region}
+                </span>
+                <button
+                  onClick={() => onGenerateDraft(article)}
+                  className="flex items-center gap-1.5 text-sm font-bold text-indigo-600 hover:text-indigo-800"
+                >
+                  <Sparkles size={16} /> Generate Post
+                </button>
+              </div>
             </div>
-            
-            <h3 className="text-lg font-semibold text-slate-900 mb-2 leading-tight">
-              {article.title}
-            </h3>
-            
-            <p className="text-slate-600 text-sm mb-4 line-clamp-3 flex-1">
-              {article.summary}
-            </p>
-            
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
-              <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                {article.source}
-              </span>
-              <button
-                onClick={() => onGenerateDraft(article)}
-                className="flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-800 transition-colors"
-              >
-                <Sparkles size={16} />
-                Generate Post
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
